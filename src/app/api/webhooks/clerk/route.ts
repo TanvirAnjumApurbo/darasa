@@ -1,22 +1,27 @@
-import { deleteUser, upsertUser } from "@/features/users/db"
-import { verifyWebhook } from "@clerk/nextjs/webhooks"
-import { NextRequest } from "next/server"
+import { deleteUser, upsertUser } from "@/features/users/db";
+import { verifyWebhook } from "@clerk/nextjs/webhooks";
+import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const event = await verifyWebhook(request)
+    console.log("🔄 Clerk webhook received");
+    const event = await verifyWebhook(request);
+    console.log("✅ Webhook verified, event type:", event.type);
 
     switch (event.type) {
       case "user.created":
       case "user.updated":
-        const clerkData = event.data
+        console.log("👤 Processing user:", event.type);
+        const clerkData = event.data;
         const email = clerkData.email_addresses.find(
-          e => e.id === clerkData.primary_email_address_id
-        )?.email_address
+          (e) => e.id === clerkData.primary_email_address_id
+        )?.email_address;
         if (email == null) {
-          return new Response("No primary email found", { status: 400 })
+          console.log("❌ No primary email found");
+          return new Response("No primary email found", { status: 400 });
         }
 
+        console.log("💾 Upserting user:", clerkData.id, email);
         await upsertUser({
           id: clerkData.id,
           email,
@@ -24,20 +29,35 @@ export async function POST(request: NextRequest) {
           imageUrl: clerkData.image_url,
           createdAt: new Date(clerkData.created_at),
           updatedAt: new Date(clerkData.updated_at),
-        })
+        });
+        console.log("✅ User upserted successfully");
 
-        break
+        break;
       case "user.deleted":
         if (event.data.id == null) {
-          return new Response("No user ID found", { status: 400 })
+          console.log("❌ No user ID found for deletion");
+          return new Response("No user ID found", { status: 400 });
         }
 
-        await deleteUser(event.data.id)
-        break
+        console.log("🗑️ Deleting user:", event.data.id);
+        await deleteUser(event.data.id);
+        console.log("✅ User deleted successfully");
+        break;
+      default:
+        console.log("⚠️ Unhandled event type:", event.type);
     }
-  } catch {
-    return new Response("Invalid webhook", { status: 400 })
+  } catch (error) {
+    console.error(
+      "❌ Webhook error:",
+      error instanceof Error ? error.message : String(error)
+    );
+    console.error(
+      "❌ Stack trace:",
+      error instanceof Error ? error.stack : "No stack trace"
+    );
+    return new Response("Invalid webhook", { status: 400 });
   }
 
-  return new Response("Webhook received", { status: 200 })
+  console.log("✅ Webhook processed successfully");
+  return new Response("Webhook received", { status: 200 });
 }
