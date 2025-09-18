@@ -1,28 +1,28 @@
-import { JobInfoTable } from "@/drizzle/schema";
-import { fetchChatMessages } from "../hume/lib/api";
-import { generateText } from "ai";
-import { google } from "./models/google";
+import { JobInfoTable } from "@/drizzle/schema"
+import { fetchChatMessages } from "../hume/lib/api"
+import { generateText } from "ai"
+import { google } from "./models/google"
 
 export async function generateAiInterviewFeedback({
   humeChatId,
   jobInfo,
   userName,
 }: {
-  humeChatId: string;
+  humeChatId: string
   jobInfo: Pick<
     typeof JobInfoTable.$inferSelect,
     "title" | "description" | "experienceLevel"
-  >;
-  userName: string;
+  >
+  userName: string
 }) {
-  const messages = await fetchChatMessages(humeChatId);
+  const messages = await fetchChatMessages(humeChatId)
 
   const formattedMessages = messages
-    .map((message) => {
+    .map(message => {
       if (message.type !== "USER_MESSAGE" && message.type !== "AGENT_MESSAGE") {
-        return null;
+        return null
       }
-      if (message.messageText == null) return null;
+      if (message.messageText == null) return null
 
       return {
         speaker:
@@ -30,18 +30,15 @@ export async function generateAiInterviewFeedback({
         text: message.messageText,
         emotionFeatures:
           message.role === "USER" ? message.emotionFeatures : undefined,
-      };
+      }
     })
-    .filter((f) => f != null);
+    .filter(f => f != null)
 
   const { text } = await generateText({
-    model: google("gemini-2.5-pro"),
+    model: google("gemini-2.5-flash"),
     prompt: JSON.stringify(formattedMessages),
-    // Mapped approximation of removed multi-step settings
-    maxOutputTokens: 900, // allow space for feedback + full correct answer
-    temperature: 0.3, // keep feedback precise
-    // topP: 0.9,
-    maxRetries: 2,
+    maxSteps: 10,
+    experimental_continueSteps: true,
     system: `You are an expert interview coach and evaluator. Your role is to analyze a mock job interview transcript and provide clear, detailed, and structured feedback on the interviewee's performance based on the job requirements. Your output should be in markdown format.
   
 ---
@@ -111,7 +108,7 @@ Additional Notes:
 - Refer to the interviewee as "you" in your feedback. This feedback should be written as if you were speaking directly to the interviewee.
 - Include a number rating (out of 10) in the heading for each category (e.g., "Communication Clarity: 8/10") as well as an overall rating at the very start of the response.
 - Stop generating output as soon you have provided the full feedback.`,
-  });
+  })
 
-  return text;
+  return text
 }

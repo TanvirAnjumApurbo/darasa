@@ -2,9 +2,9 @@ import {
   JobInfoTable,
   QuestionDifficulty,
   QuestionTable,
-} from "@/drizzle/schema";
-import { CoreMessage, streamText } from "ai";
-import { google } from "./models/google";
+} from "@/drizzle/schema"
+import { CoreMessage, streamText } from "ai"
+import { google } from "./models/google"
 
 export function generateAiQuestion({
   jobInfo,
@@ -15,21 +15,21 @@ export function generateAiQuestion({
   jobInfo: Pick<
     typeof JobInfoTable.$inferSelect,
     "title" | "description" | "experienceLevel"
-  >;
+  >
   previousQuestions: Pick<
     typeof QuestionTable.$inferSelect,
     "text" | "difficulty"
-  >[];
-  difficulty: QuestionDifficulty;
-  onFinish: (question: string) => void;
+  >[]
+  difficulty: QuestionDifficulty
+  onFinish: (question: string) => void
 }) {
   const previousMessages = previousQuestions.flatMap(
-    (q) =>
+    q =>
       [
         { role: "user", content: q.difficulty },
         { role: "assistant", content: q.text },
       ] satisfies CoreMessage[]
-  );
+  )
 
   return streamText({
     model: google("gemini-2.5-flash"),
@@ -41,13 +41,8 @@ export function generateAiQuestion({
         content: difficulty,
       },
     ],
-    // Mapped from previous unsupported settings:
-    // maxSteps:10, experimental_continueSteps:true
-    // We approximate by constraining output length & adding mild creativity.
-    maxOutputTokens: 320, // tentative cap to keep a single well‑scoped question
-    temperature: 0.4, // moderate diversity while staying focused
-    // topP: 0.9, // nucleus sampling 
-    maxRetries: 2, // replaces any iterative continuation intent
+    maxSteps: 10,
+    experimental_continueSteps: true,
     system: `You are an AI assistant that creates technical interview questions tailored to a specific job role. Your task is to generate one **realistic and relevant** technical question that matches the skill requirements of the job and aligns with the difficulty level provided by the user.
 
 Job Information:
@@ -65,24 +60,21 @@ Guidelines:
 - It is ok to ask a question about just a single part of the job description, such as a specific technology or skill (e.g., if the job description is for a Next.js, Drizzle, and TypeScript developer, you can ask a TypeScript only question).
 - The question should be formatted as markdown.
 - Stop generating output as soon you have provided the full question.`,
-  });
+  })
 }
 
 export function generateAiQuestionFeedback({
   question,
   answer,
 }: {
-  question: string;
-  answer: string;
+  question: string
+  answer: string
 }) {
   return streamText({
     model: google("gemini-2.5-flash"),
     prompt: answer,
-    // Mapped approximation of removed multi-step settings
-    maxOutputTokens: 900, // allow space for feedback + full correct answer
-    temperature: 0.3, // keep feedback precise
-    // topP: 0.9,
-    maxRetries: 2,
+    maxSteps: 10,
+    experimental_continueSteps: true,
     system: `You are an expert technical interviewer. Your job is to evaluate the candidate's answer to a technical interview question.
 
 The original question was:
@@ -112,5 +104,5 @@ Output Format (strictly follow this structure):
 ## Correct Answer
 <The full correct answer as markdown>
 \`\`\``,
-  });
+  })
 }
