@@ -1,71 +1,74 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { env } from "@/data/env/client"
-import { JobInfoTable } from "@/drizzle/schema"
-import { createInterview, updateInterview } from "@/features/interviews/actions"
-import { errorToast } from "@/lib/errorToast"
-import { CondensedMessages } from "@/services/hume/components/CondensedMessages"
-import { condenseChatMessages } from "@/services/hume/lib/condenseChatMessages"
-import { useVoice, VoiceReadyState } from "@humeai/voice-react"
-import { Loader2Icon, MicIcon, MicOffIcon, PhoneOffIcon } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { Button } from "@/components/ui/button";
+import { env } from "@/data/env/client";
+import { JobInfoTable } from "@/drizzle/schema";
+import {
+  createInterview,
+  updateInterview,
+} from "@/features/interviews/actions";
+import { errorToast } from "@/lib/errorToast";
+import { CondensedMessages } from "@/services/hume/components/CondensedMessages";
+import { condenseChatMessages } from "@/services/hume/lib/condenseChatMessages";
+import { useVoice, VoiceReadyState } from "@humeai/voice-react";
+import { Loader2Icon, MicIcon, MicOffIcon, PhoneOffIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export function StartCall({
   jobInfo,
   user,
   accessToken,
 }: {
-  accessToken: string
+  accessToken: string;
   jobInfo: Pick<
     typeof JobInfoTable.$inferSelect,
     "id" | "title" | "description" | "experienceLevel"
-  >
+  >;
   user: {
-    name: string
-    imageUrl: string
-  }
+    name: string;
+    imageUrl: string | null;
+  };
 }) {
   const { connect, readyState, chatMetadata, callDurationTimestamp } =
-    useVoice()
-  const [interviewId, setInterviewId] = useState<string | null>(null)
-  const durationRef = useRef(callDurationTimestamp)
-  const router = useRouter()
-  durationRef.current = callDurationTimestamp
+    useVoice();
+  const [interviewId, setInterviewId] = useState<string | null>(null);
+  const durationRef = useRef(callDurationTimestamp);
+  const router = useRouter();
+  durationRef.current = callDurationTimestamp;
 
   // Sync chat ID
   useEffect(() => {
     if (chatMetadata?.chatId == null || interviewId == null) {
-      return
+      return;
     }
-    updateInterview(interviewId, { humeChatId: chatMetadata.chatId })
-  }, [chatMetadata?.chatId, interviewId])
+    updateInterview(interviewId, { humeChatId: chatMetadata.chatId });
+  }, [chatMetadata?.chatId, interviewId]);
 
   // Sync duration
   useEffect(() => {
-    if (interviewId == null) return
+    if (interviewId == null) return;
     const intervalId = setInterval(() => {
-      if (durationRef.current == null) return
+      if (durationRef.current == null) return;
 
-      updateInterview(interviewId, { duration: durationRef.current })
-    }, 10000)
+      updateInterview(interviewId, { duration: durationRef.current });
+    }, 10000);
 
-    return () => clearInterval(intervalId)
-  }, [interviewId])
+    return () => clearInterval(intervalId);
+  }, [interviewId]);
 
   // Handle disconnect
   useEffect(() => {
-    if (readyState !== VoiceReadyState.CLOSED) return
+    if (readyState !== VoiceReadyState.CLOSED) return;
     if (interviewId == null) {
-      return router.push(`/app/job-infos/${jobInfo.id}/interviews`)
+      return router.push(`/app/job-infos/${jobInfo.id}/interviews`);
     }
 
     if (durationRef.current != null) {
-      updateInterview(interviewId, { duration: durationRef.current })
+      updateInterview(interviewId, { duration: durationRef.current });
     }
-    router.push(`/app/job-infos/${jobInfo.id}/interviews/${interviewId}`)
-  }, [interviewId, readyState, router, jobInfo.id])
+    router.push(`/app/job-infos/${jobInfo.id}/interviews/${interviewId}`);
+  }, [interviewId, readyState, router, jobInfo.id]);
 
   if (readyState === VoiceReadyState.IDLE) {
     return (
@@ -73,11 +76,11 @@ export function StartCall({
         <Button
           size="lg"
           onClick={async () => {
-            const res = await createInterview({ jobInfoId: jobInfo.id })
+            const res = await createInterview({ jobInfoId: jobInfo.id });
             if (res.error) {
-              return errorToast(res.message)
+              return errorToast(res.message);
             }
-            setInterviewId(res.id)
+            setInterviewId(res.id);
 
             connect({
               auth: { type: "accessToken", value: accessToken },
@@ -91,13 +94,13 @@ export function StartCall({
                   experienceLevel: jobInfo.experienceLevel,
                 },
               },
-            })
+            });
           }}
         >
           Start Interview
         </Button>
       </div>
-    )
+    );
   }
 
   if (
@@ -108,7 +111,7 @@ export function StartCall({
       <div className="h-screen-header flex items-center justify-center">
         <Loader2Icon className="animate-spin size-24" />
       </div>
-    )
+    );
   }
 
   return (
@@ -118,15 +121,19 @@ export function StartCall({
         <Controls />
       </div>
     </div>
-  )
+  );
 }
 
-function Messages({ user }: { user: { name: string; imageUrl: string } }) {
-  const { messages, fft } = useVoice()
+function Messages({
+  user,
+}: {
+  user: { name: string; imageUrl: string | null };
+}) {
+  const { messages, fft } = useVoice();
 
   const condensedMessages = useMemo(() => {
-    return condenseChatMessages(messages)
-  }, [messages])
+    return condenseChatMessages(messages);
+  }, [messages]);
 
   return (
     <CondensedMessages
@@ -135,12 +142,12 @@ function Messages({ user }: { user: { name: string; imageUrl: string } }) {
       maxFft={Math.max(...fft)}
       className="max-w-5xl"
     />
-  )
+  );
 }
 
 function Controls() {
   const { disconnect, isMuted, mute, unmute, micFft, callDurationTimestamp } =
-    useVoice()
+    useVoice();
 
   return (
     <div className="flex gap-5 rounded border px-5 py-2 w-fit sticky bottom-6 bg-background items-center">
@@ -169,22 +176,22 @@ function Controls() {
         <span className="sr-only">End Call</span>
       </Button>
     </div>
-  )
+  );
 }
 
 function FftVisualizer({ fft }: { fft: number[] }) {
   return (
     <div className="flex gap-1 items-center h-full">
       {fft.map((value, index) => {
-        const percent = (value / 4) * 100
+        const percent = (value / 4) * 100;
         return (
           <div
             key={index}
             className="min-h-0.5 bg-primary/75 w-0.5 rounded"
             style={{ height: `${percent < 10 ? 0 : percent}%` }}
           />
-        )
+        );
       })}
     </div>
-  )
+  );
 }

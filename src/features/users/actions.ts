@@ -53,7 +53,7 @@ export async function createUserFromClerk() {
       name:
         `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() ||
         "User",
-      imageUrl: clerkUser.imageUrl,
+      imageUrl: clerkUser.imageUrl || null,
       createdAt: new Date(clerkUser.createdAt),
       updatedAt: new Date(clerkUser.updatedAt),
     });

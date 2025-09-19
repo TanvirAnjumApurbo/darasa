@@ -9,7 +9,7 @@ export function CondensedMessages({
   maxFft = 0,
 }: {
   messages: { isUser: boolean; content: string[] }[];
-  user: { name: string; imageUrl: string };
+  user: { name: string; imageUrl: string | null };
   className?: string;
   maxFft?: number;
 }) {

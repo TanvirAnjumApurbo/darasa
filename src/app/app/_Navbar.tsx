@@ -1,49 +1,59 @@
-"use client"
+"use client";
 
 import {
   BookOpenIcon,
-  BrainCircuitIcon,
   FileSlidersIcon,
   LogOut,
   SpeechIcon,
   User,
-} from "lucide-react"
-import { ThemeToggle } from "@/components/ThemeToggle"
+} from "lucide-react";
+import Image from "next/image";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { SignOutButton, useClerk } from "@clerk/nextjs"
-import Link from "next/link"
-import { UserAvatar } from "@/features/users/components/UserAvatar"
-import { useParams, usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dropdown-menu";
+import { SignOutButton, useClerk } from "@clerk/nextjs";
+import Link from "next/link";
+import { UserAvatar } from "@/features/users/components/UserAvatar";
+import { useParams, usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 const navLinks = [
   { name: "Interviews", href: "interviews", Icon: SpeechIcon },
   { name: "Questions", href: "questions", Icon: BookOpenIcon },
   { name: "Resume", href: "resume", Icon: FileSlidersIcon },
-]
+];
 
-export function Navbar({ user }: { user: { name: string; imageUrl: string } }) {
-  const { openUserProfile } = useClerk()
-  const { jobInfoId } = useParams()
-  const pathName = usePathname()
+export function Navbar({
+  user,
+}: {
+  user: { name: string; imageUrl: string | null };
+}) {
+  const { openUserProfile } = useClerk();
+  const { jobInfoId } = useParams();
+  const pathName = usePathname();
 
   return (
     <nav className="h-header border-b">
       <div className="container flex h-full items-center justify-between">
         <Link href="/app" className="flex items-center gap-2">
-          <BrainCircuitIcon className="size-8 text-primary" />
+          <Image
+            src="/logo.svg"
+            alt="Darasa Logo"
+            width={32}
+            height={32}
+            className="size-8"
+          />
           <span className="text-xl font-bold">Darasa</span>
         </Link>
 
         <div className="flex items-center gap-4">
           {typeof jobInfoId === "string" &&
             navLinks.map(({ name, href, Icon }) => {
-              const hrefPath = `/app/job-infos/${jobInfoId}/${href}`
+              const hrefPath = `/app/job-infos/${jobInfoId}/${href}`;
 
               return (
                 <Button
@@ -57,7 +67,7 @@ export function Navbar({ user }: { user: { name: string; imageUrl: string } }) {
                     {name}
                   </Link>
                 </Button>
-              )
+              );
             })}
 
           <ThemeToggle />
@@ -82,5 +92,5 @@ export function Navbar({ user }: { user: { name: string; imageUrl: string } }) {
         </div>
       </div>
     </nav>
-  )
+  );
 }

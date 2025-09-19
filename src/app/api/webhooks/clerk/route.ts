@@ -1,12 +1,64 @@
 import { deleteUser, upsertUser } from "@/features/users/db";
-import { verifyWebhook } from "@clerk/nextjs/webhooks";
-import { NextRequest } from "next/server";
+import { Webhook } from "svix";
+import { headers } from "next/headers";
 
-export async function POST(request: NextRequest) {
+interface ClerkWebhookEvent {
+  type: string;
+  data: {
+    id: string;
+    email_addresses: Array<{
+      id: string;
+      email_address: string;
+    }>;
+    primary_email_address_id: string;
+    first_name?: string;
+    last_name?: string;
+    image_url?: string;
+    created_at: number;
+    updated_at: number;
+  };
+}
+
+export async function POST(request: Request) {
   try {
     console.log("🔄 Clerk webhook received");
-    const event = await verifyWebhook(request);
-    console.log("✅ Webhook verified, event type:", event.type);
+
+    // Get the headers
+    const headerPayload = await headers();
+    const svix_id = headerPayload.get("svix-id");
+    const svix_timestamp = headerPayload.get("svix-timestamp");
+    const svix_signature = headerPayload.get("svix-signature");
+
+    // If there are no headers, error out
+    if (!svix_id || !svix_timestamp || !svix_signature) {
+      console.error("❌ Missing svix headers");
+      return new Response("Error occured -- no svix headers", {
+        status: 400,
+      });
+    }
+
+    // Get the body
+    const payload = await request.text();
+
+    // Create a new Svix instance with your secret.
+    const wh = new Webhook(process.env.CLERK_WEBHOOK_SIGNING_SECRET!);
+
+    let event: ClerkWebhookEvent;
+
+    // Verify the payload with the headers
+    try {
+      event = wh.verify(payload, {
+        "svix-id": svix_id,
+        "svix-timestamp": svix_timestamp,
+        "svix-signature": svix_signature,
+      }) as ClerkWebhookEvent;
+      console.log("✅ Webhook verified, event type:", event.type);
+    } catch (err) {
+      console.error("❌ Error verifying webhook:", err);
+      return new Response("Error occured", {
+        status: 400,
+      });
+    }
 
     switch (event.type) {
       case "user.created":
@@ -25,8 +77,11 @@ export async function POST(request: NextRequest) {
         await upsertUser({
           id: clerkData.id,
           email,
-          name: `${clerkData.first_name} ${clerkData.last_name}`,
-          imageUrl: clerkData.image_url,
+          name:
+            `${clerkData.first_name || ""} ${
+              clerkData.last_name || ""
+            }`.trim() || "User",
+          imageUrl: clerkData.image_url || null,
           createdAt: new Date(clerkData.created_at),
           updatedAt: new Date(clerkData.updated_at),
         });
@@ -60,4 +115,9 @@ export async function POST(request: NextRequest) {
 
   console.log("✅ Webhook processed successfully");
   return new Response("Webhook received", { status: 200 });
+}
+
+// Add a GET endpoint to test webhook URL accessibility
+export async function GET() {
+  return new Response("Clerk webhook endpoint is working", { status: 200 });
 }

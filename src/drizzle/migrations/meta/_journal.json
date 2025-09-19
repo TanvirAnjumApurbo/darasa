@@ -8,6 +8,13 @@
       "when": 1757715292823,
       "tag": "0000_many_swordsman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1758231465703,
+      "tag": "0001_complex_silvermane",
+      "breakpoints": true
     }
   ]
 }

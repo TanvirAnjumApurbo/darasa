@@ -1,7 +1,7 @@
 // Temporarily disabled Arcjet imports for debugging
-import arcjet, { detectBot, shield, slidingWindow } from "@arcjet/next";
+// import arcjet, { detectBot, shield, slidingWindow } from "@arcjet/next";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { env } from "./data/env/server";
+// import { env } from "./data/env/server";
 
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
@@ -27,16 +27,21 @@ const isPublicRoute = createRouteMatcher([
 // });
 
 export default clerkMiddleware(async (auth, req) => {
+  // Allow webhooks to pass through without authentication
+  if (req.nextUrl.pathname.startsWith("/api/webhooks/")) {
+    return;
+  }
+
   // Temporarily disable Arcjet for debugging
   // const decision = await aj.protect(req);
-  
+
   // if (decision.isDenied()) {
   //   return new Response(null, { status: 403 });
   // }
 
-  // if (!isPublicRoute(req)) {
-  //   await auth.protect();
-  // }
+  if (!isPublicRoute(req)) {
+    await auth.protect();
+  }
 });
 
 export const config = {

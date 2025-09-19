@@ -13,54 +13,53 @@ export function OnboardingClient({ userId }: { userId: string }) {
 
   useEffect(() => {
     console.log("🔄 Starting onboarding check for user:", userId);
+    let currentAttempts = 0;
+    let isManualCreationStarted = false;
 
     const intervalId = setInterval(async () => {
       try {
+        currentAttempts++;
+        setAttempts(currentAttempts);
+
         console.log(
-          `🔍 Checking user existence, attempt ${attempts + 1}/${maxAttempts}`
+          `🔍 Checking user existence, attempt ${currentAttempts}/${maxAttempts}`
         );
         const user = await getUser(userId);
 
         if (user != null) {
           console.log("✅ User found in database, redirecting to /app");
-          router.replace("/app");
           clearInterval(intervalId);
+          router.replace("/app");
           return;
         }
 
-        setAttempts((prev) => {
-          const newAttempts = prev + 1;
-          if (newAttempts >= maxAttempts && !isCreatingManually) {
-            console.log(
-              "❌ Max attempts reached, webhook failed - trying manual creation"
-            );
-            setIsCreatingManually(true);
+        if (currentAttempts >= maxAttempts && !isManualCreationStarted) {
+          console.log(
+            "❌ Max attempts reached, webhook failed - trying manual creation"
+          );
+          isManualCreationStarted = true;
+          setIsCreatingManually(true);
+          clearInterval(intervalId);
 
-            // Try to create user manually from Clerk data
-            createUserFromClerk()
-              .then(() => {
-                console.log("✅ User created manually, redirecting");
-                router.replace("/app");
-              })
-              .catch((error) => {
-                console.error("❌ Manual user creation failed:", error);
-                router.replace("/app?error=user_creation_failed");
-              });
-
-            clearInterval(intervalId);
+          // Try to create user manually from Clerk data
+          try {
+            await createUserFromClerk();
+            console.log("✅ User created manually, redirecting");
+            router.replace("/app");
+          } catch (error) {
+            console.error("❌ Manual user creation failed:", error);
+            router.replace("/app?error=user_creation_failed");
           }
-          return newAttempts;
-        });
+        }
       } catch (error) {
         console.error("❌ Error checking user:", error);
-        setAttempts((prev) => prev + 1);
       }
     }, 250);
 
     return () => {
       clearInterval(intervalId);
     };
-  }, [userId, router, attempts, isCreatingManually]);
+  }, [userId, router]); // Remove attempts and isCreatingManually from dependencies
 
   return (
     <div className="flex flex-col items-center gap-4">
