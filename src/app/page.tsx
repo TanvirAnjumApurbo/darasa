@@ -118,7 +118,7 @@ function Hero() {
         <div className="text-center">
           <h2 className="text-4xl sm:text-6xl font-bold text-foreground mb-6 leading-tight">
             <span className="animate-gradient">Darasa</span> Brings Confidence
-            To Your Career with{" "}
+            to your Career with{" "}
             <span className="animate-gradient text-nowrap">AI Powered</span> Job
             Preparation
           </h2>

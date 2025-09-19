@@ -12,7 +12,8 @@ const outfitSans = Outfit({
 
 export const metadata: Metadata = {
   title: "Darasa",
-  description: "This a platform to help you learn anything.",
+  description:
+    "Darasa Brings Confidence to your Career with AI Powered Job Preparation.",
   icons: {
     icon: "/favicon.ico",
   },

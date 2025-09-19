@@ -1,0 +1,1 @@
+ALTER TABLE "interviews" ALTER COLUMN "duration" SET NOT NULL;

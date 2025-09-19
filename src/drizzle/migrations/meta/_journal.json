@@ -15,6 +15,20 @@
       "when": 1758231465703,
       "tag": "0001_complex_silvermane",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1758289307850,
+      "tag": "0002_rainy_dakota_north",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1758289962544,
+      "tag": "0003_lush_wolfsbane",
+      "breakpoints": true
     }
   ]
 }
