@@ -19,8 +19,8 @@ export default function AuthPage() {
   const isSignIn = mode === "sign-in";
 
   return (
-    <div className="flex min-h-screen w-screen items-center justify-center bg-slate-50 p-6">
-      <div className="w-full max-w-[420px] space-y-6">
+    <div className="flex min-h-dvh w-full items-center justify-center bg-slate-50 px-4 py-10 sm:px-6">
+      <div className="mx-auto w-full max-w-[420px] space-y-6">
         <div className="flex flex-col items-center gap-2 text-center">
           <Image
             src="/logo.svg"
@@ -39,7 +39,7 @@ export default function AuthPage() {
           </p>
         </div>
 
-        <div className="rounded-2xl bg-white p-4 shadow-lg shadow-slate-200/60 space-y-4">
+        <div className="rounded-2xl bg-white p-4 shadow-lg shadow-slate-200/60 space-y-4 sm:p-5">
           {isSignIn ? (
             <SignIn appearance={signInLightAppearance} routing="hash" />
           ) : (

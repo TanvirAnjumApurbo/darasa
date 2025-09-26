@@ -13,6 +13,8 @@ export const signInLightAppearance: Appearance = {
     colorNeutral: "#64748b",
   },
   elements: {
+    rootBox: "w-full",
+    cardBox: "w-full",
     card: "!bg-white !text-slate-900 shadow-lg",
     headerTitle: "!text-slate-900",
     headerSubtitle: "!hidden",
