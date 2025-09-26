@@ -4,6 +4,8 @@ import { getCurrentUser } from "@/services/clerk/lib/getCurrentUser";
 import { hasPermission } from "@/services/clerk/lib/hasPermission";
 import { and, count, eq, isNotNull } from "drizzle-orm";
 
+const LIMITED_INTERVIEW_ALLOWANCE = 2;
+
 export async function canCreateInterview() {
   // Allow either plural or singular unlimited feature flag names for resilience.
   const [unlimitedPlural, unlimitedSingular] = await Promise.all([
@@ -13,13 +15,14 @@ export async function canCreateInterview() {
 
   if (unlimitedPlural || unlimitedSingular) return true;
 
-  // Fallback to single-interview allowance
-  const [singleInterviewPermitted, interviewCount] = await Promise.all([
+  // Fallback to limited interview allowance
+  const [limitedInterviewPermitted, interviewCount] = await Promise.all([
     hasPermission("1_interview"),
     getUserInterviewCount(),
   ]);
 
-  if (singleInterviewPermitted && interviewCount < 1) return true;
+  if (limitedInterviewPermitted && interviewCount < LIMITED_INTERVIEW_ALLOWANCE)
+    return true;
 
   return false;
 }

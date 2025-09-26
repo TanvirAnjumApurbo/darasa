@@ -1,17 +1,22 @@
-import { db } from "@/drizzle/db"
-import { JobInfoTable } from "@/drizzle/schema"
-import { revalidateJobInfoCache } from "./dbCache"
-import { eq } from "drizzle-orm"
+import { db } from "@/drizzle/db";
+import { JobInfoTable } from "@/drizzle/schema";
+import { revalidateJobInfoCache } from "./dbCache";
+import { eq } from "drizzle-orm";
+
+type JobInfoIdentifier = {
+  id: string;
+  userId: string;
+};
 
 export async function insertJobInfo(jobInfo: typeof JobInfoTable.$inferInsert) {
   const [newJobInfo] = await db.insert(JobInfoTable).values(jobInfo).returning({
     id: JobInfoTable.id,
     userId: JobInfoTable.userId,
-  })
+  });
 
-  revalidateJobInfoCache(newJobInfo)
+  revalidateJobInfoCache(newJobInfo);
 
-  return newJobInfo
+  return newJobInfo;
 }
 
 export async function updateJobInfo(
@@ -25,9 +30,25 @@ export async function updateJobInfo(
     .returning({
       id: JobInfoTable.id,
       userId: JobInfoTable.userId,
-    })
+    });
 
-  revalidateJobInfoCache(updatedJobInfo)
+  revalidateJobInfoCache(updatedJobInfo);
 
-  return updatedJobInfo
+  return updatedJobInfo;
+}
+
+export async function deleteJobInfo(id: string) {
+  const [deletedJobInfo] = await db
+    .delete(JobInfoTable)
+    .where(eq(JobInfoTable.id, id))
+    .returning({
+      id: JobInfoTable.id,
+      userId: JobInfoTable.userId,
+    });
+
+  if (deletedJobInfo) {
+    revalidateJobInfoCache(deletedJobInfo satisfies JobInfoIdentifier);
+  }
+
+  return deletedJobInfo;
 }

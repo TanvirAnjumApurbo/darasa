@@ -15,7 +15,7 @@ export const signInLightAppearance: Appearance = {
   elements: {
     card: "!bg-white !text-slate-900 shadow-lg",
     headerTitle: "!text-slate-900",
-    headerSubtitle: "!text-slate-600",
+    headerSubtitle: "!hidden",
     socialButtonsBlockButton:
       "!bg-white !border-slate-300 !text-slate-900 hover:!bg-slate-50",
     dividerLine: "!bg-slate-300",
@@ -23,8 +23,10 @@ export const signInLightAppearance: Appearance = {
     formFieldLabel: "!text-slate-700",
     formFieldInput: "!bg-white !border-slate-300 !text-slate-900",
     formButtonPrimary: "!bg-blue-600 hover:!bg-blue-700 !text-white",
-    footerActionText: "!text-slate-600",
-    footerActionLink: "!text-blue-600 hover:!text-blue-700",
+    footer: "hidden",
+    footerAction: "hidden",
+    footerActionText: "hidden",
+    footerActionLink: "hidden",
     identityPreview: "!bg-white !border-slate-300",
     identityPreviewText: "!text-slate-900",
     identityPreviewEditButton: "!text-blue-600 hover:!text-blue-700",

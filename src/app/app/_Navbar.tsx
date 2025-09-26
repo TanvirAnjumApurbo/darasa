@@ -4,6 +4,7 @@ import {
   BookOpenIcon,
   FileSlidersIcon,
   LogOut,
+  Sparkles,
   SpeechIcon,
   User,
 } from "lucide-react";
@@ -20,6 +21,7 @@ import Link from "next/link";
 import { UserAvatar } from "@/features/users/components/UserAvatar";
 import { useParams, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
   { name: "Interviews", href: "interviews", Icon: SpeechIcon },
@@ -29,12 +31,22 @@ const navLinks = [
 
 export function Navbar({
   user,
+  plan,
 }: {
   user: { name: string; imageUrl: string | null };
+  plan: "free" | "pro" | "max";
 }) {
   const { openUserProfile } = useClerk();
   const { jobInfoId } = useParams();
   const pathName = usePathname();
+  const label = plan === "max" ? "Max" : plan === "pro" ? "Pro" : "Free";
+  const isPaid = plan === "pro" || plan === "max";
+  const badgeClassName = cn(
+    "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold",
+    isPaid
+      ? "border-cyan-200/40 bg-gradient-to-r from-primary via-cyan-500 to-cyan-400 text-white shadow-[0_0_18px_rgba(21,94,117,0.55)]"
+      : "border-border bg-muted text-muted-foreground shadow-sm"
+  );
 
   return (
     <nav className="h-header border-b">
@@ -51,6 +63,14 @@ export function Navbar({
         </Link>
 
         <div className="flex items-center gap-4">
+          <span
+            className={badgeClassName}
+            aria-label={`Current plan: ${label}`}
+          >
+            {isPaid && <Sparkles className="size-4 drop-shadow" />}
+            {label}
+          </span>
+
           {typeof jobInfoId === "string" &&
             navLinks.map(({ name, href, Icon }) => {
               const hrefPath = `/app/job-infos/${jobInfoId}/${href}`;
