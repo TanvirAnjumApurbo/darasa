@@ -13,7 +13,7 @@
 
 **Transform your job search with AI-powered interview practice, resume optimization, and technical question preparation. Land your dream job faster with confidence.**
 
-[🚀 Get Started](https://darasa-lake.vercel.app/) • [📖 Documentation]([#getting-started](https://github.com/TanvirAnjumApurbo/darasa/tree/main/.qoder/repowiki/en/content)) • [💬 Support](https://github.com/TanvirAnjumApurbo/darasa/issues)
+[🚀 Get Started](https://darasa-lake.vercel.app/) • [📖 Documentation](https://github.com/TanvirAnjumApurbo/darasa/tree/main/.qoder/repowiki/en/content) • [💬 Support](https://github.com/TanvirAnjumApurbo/darasa/issues)
 
 </div>
 
