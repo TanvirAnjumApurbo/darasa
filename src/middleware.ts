@@ -1,7 +1,7 @@
-// Temporarily disabled Arcjet imports for debugging
-// import arcjet, { detectBot, shield, slidingWindow } from "@arcjet/next";
+import arcjet, { detectBot, shield, slidingWindow } from "@arcjet/next";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-// import { env } from "./data/env/server";
+import { NextResponse } from "next/server";
+import { env } from "./data/env/server";
 
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
@@ -9,22 +9,21 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks(.*)",
 ]);
 
-// Temporarily disabled Arcjet for debugging auth issues
-// const aj = arcjet({
-//   key: env.ARCJET_KEY!,
-//   rules: [
-//     shield({ mode: "LIVE" }),
-//     detectBot({
-//       mode: "LIVE",
-//       allow: ["CATEGORY:SEARCH_ENGINE", "CATEGORY:MONITOR", "CATEGORY:PREVIEW"],
-//     }),
-//     slidingWindow({
-//       mode: "LIVE",
-//       interval: "1m",
-//       max: 100,
-//     }),
-//   ],
-// });
+const aj = arcjet({
+  key: env.ARCJET_KEY,
+  rules: [
+    shield({ mode: "LIVE" }),
+    detectBot({
+      mode: "LIVE",
+      allow: ["CATEGORY:SEARCH_ENGINE", "CATEGORY:MONITOR", "CATEGORY:PREVIEW"],
+    }),
+    slidingWindow({
+      mode: "LIVE",
+      interval: "1m",
+      max: 100,
+    }),
+  ],
+});
 
 export default clerkMiddleware(async (auth, req) => {
   // Allow webhooks to pass through without authentication
@@ -32,12 +31,15 @@ export default clerkMiddleware(async (auth, req) => {
     return;
   }
 
-  // Temporarily disable Arcjet for debugging
-  // const decision = await aj.protect(req);
+  const decision = await aj.protect(req);
 
-  // if (decision.isDenied()) {
-  //   return new Response(null, { status: 403 });
-  // }
+  if (decision.isDenied()) {
+    if (decision.reason.isRateLimit()) {
+      return NextResponse.json({ error: "Too Many Requests" }, { status: 429 });
+    }
+
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   if (!isPublicRoute(req)) {
     await auth.protect();
